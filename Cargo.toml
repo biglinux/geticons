@@ -25,3 +25,7 @@ edition = "2018"
 linicon = "2.0"
 argh = "0.1"
 prettytable-rs = { version = "0.8", default-features = false }
+
+[profile.release]
+lto = true
+codegen-units = 1
