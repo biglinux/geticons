@@ -1,0 +1,11 @@
+[package]
+name = "geticons"
+version = "0.1.0"
+authors = ["Ben Goldberg <ben@benaaron.dev>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+linicon = "2.0"
+argh = "0.1"
