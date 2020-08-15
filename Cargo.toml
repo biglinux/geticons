@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 linicon = "2.0"
 argh = "0.1"
+prettytable-rs = { version = "0.8", default-features = false }
