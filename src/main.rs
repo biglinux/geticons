@@ -156,6 +156,7 @@ fn get_icons(
         iter = iter.from_theme(theme);
     }
     iter = iter.use_fallback_themes(!args.no_fallbacks);
+    // TODO error handling
     let iter = iter.filter(Result::is_ok).map(Result::unwrap);
     let mut themes = match &formats {
         Some(formats) => partition_by_theme(
