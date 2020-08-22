@@ -1,20 +1,20 @@
 // geticons - A program to get icons in Freedesktop systems
 // Copyright (C) 2020 Benjamin Aaron Goldberg <ben@benaaron.dev>
-// 
+//
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
 // Foundation, either version 3 of the License, or (at your option) any later
 // version.
-// 
+//
 // This program is distributed in the hope that it will be useful, but WITHOUT ANY
 // WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
 // PARTICULAR PURPOSE. See the GNU General Public License for more details.
-// 
+//
 // You should have received a copy of the GNU General Public License along with
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use argh::FromArgs;
-use linicon::{IconPath, IconType};
+use linicon::{IconPath, IconType, LiniconError};
 use prettytable::{cell, format::consts::FORMAT_CLEAN, row, Table};
 use std::cmp::Ordering;
 
@@ -120,10 +120,10 @@ fn main() {
                 }
         }).collect());
         // get the icons for each theme
-        let icons: Vec<IconPath> = args
+        let res: Vec<_> = args
             .names
             .iter()
-            .flat_map(|name| get_icons(name, &args, &formats))
+            .map(|name| get_icons(name, &args, &formats))
             .collect();
         if args.long {
             let mut table = Table::new();
@@ -131,26 +131,40 @@ fn main() {
             table.set_titles(row![
                 "Path", "Theme", "Type", "Min size", "Max size", "Scale"
             ]);
-            for icon in icons {
-                let format = match icon.icon_type {
-                    IconType::PNG => "png",
-                    IconType::SVG => "svg",
-                    IconType::XMP => "xmp",
-                };
-                table.add_row(row![
-                    icon.path.display(),
-                    icon.theme,
-                    format,
-                    icon.min_size,
-                    icon.max_size,
-                    icon.scale
-                ]);
+            for (icons, _) in &res {
+                for icon in icons {
+                    let format = match icon.icon_type {
+                        IconType::PNG => "png",
+                        IconType::SVG => "svg",
+                        IconType::XMP => "xmp",
+                    };
+                    table.add_row(row![
+                        icon.path.display(),
+                        icon.theme,
+                        format,
+                        icon.min_size,
+                        icon.max_size,
+                        icon.scale
+                    ]);
+                }
             }
             table.printstd();
         } else {
-            for icon in icons {
-                println!("{}", icon.path.display());
+            for (icons, _) in &res {
+                for icon in icons {
+                    println!("{}", icon.path.display());
+                }
             }
+        }
+        let mut has_errors = false;
+        for (_, errors) in &res {
+            for error in errors {
+                has_errors = true;
+                eprintln!("Error: {}", error);
+            }
+        }
+        if has_errors {
+            std::process::exit(1);
         }
     }
 }
@@ -159,8 +173,9 @@ fn get_icons(
     icon_name: &str,
     args: &Args,
     formats: &Option<Vec<IconType>>,
-) -> Vec<IconPath> {
+) -> (Vec<IconPath>, Option<LiniconError>) {
     let mut iter = linicon::lookup_icon(icon_name);
+    // Set lookup params
     if let Some(size) = args.size {
         iter = iter.with_size(size);
     }
@@ -171,8 +186,11 @@ fn get_icons(
         iter = iter.from_theme(theme);
     }
     iter = iter.use_fallback_themes(!args.no_fallbacks);
-    // TODO error handling
-    let iter = iter.filter(Result::is_ok).map(Result::unwrap);
+
+    // Grab errors
+    let (iter, mut error): (Vec<_>, Vec<_>) = iter.partition(Result::is_ok);
+    let iter = iter.into_iter().map(Result::unwrap);
+    // Filter by format
     let mut themes = match &formats {
         Some(formats) => partition_by_theme(
             iter.filter(|icon| formats.contains(&icon.icon_type)),
@@ -191,7 +209,10 @@ fn get_icons(
             }
         });
     }
-    themes.into_iter().flatten().collect()
+    (
+        themes.into_iter().flatten().collect(),
+        error.pop().map(Result::unwrap_err),
+    )
 }
 
 /// Splits icon list into one list per theme
