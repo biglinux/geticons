@@ -1,0 +1,15 @@
+image: alpine/edge
+packages:
+  - rust
+  - cargo
+  - faenza-icon-theme
+sources:
+  - https://git.sr.ht/~zethra/geticons
+tasks:
+  - build: |
+      cd geticons
+      cargo build --all-features --locked
+  - test: |
+      export XDG_DATA_DIRS=$XDG_DATA_DIRS:/usr/share
+      cd geticons
+      cargo test --all-features --locked
