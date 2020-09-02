@@ -18,6 +18,10 @@ name = "geticons"
 version = "0.1.0"
 authors = ["Ben Goldberg <ben@benaaron.dev>"]
 edition = "2018"
+description = "CLI tool to get icons on Linux and other Freedesktop systems"
+license = "GPL-3.0-or-later"
+documentation = "https://docs.rs/geticons/"
+repository = "https://git.sr.ht/~zethra/geticons"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
