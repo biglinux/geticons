@@ -3,5 +3,5 @@
 set-cargo-version ./Cargo.toml $2
 # Update Cargo.lock
 cargo check
-git add Cargo.toml
+git add Cargo.toml Cargo.lock
 git commit -sm "Bump version to $2"
