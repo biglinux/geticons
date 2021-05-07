@@ -2,6 +2,7 @@
 
 [![crates.io](https://img.shields.io/crates/v/geticons.svg)](https://crates.io/crates/geticons)
 [![docs.rs](https://docs.rs/geticons/badge.svg)](https://docs.rs/geticons)
+![Minimum Supported Rust Version](https://img.shields.io/badge/rustc-1.45.2-red)
 
 A cli utility to get icons for apps on your system or other generic icons by name.
 
