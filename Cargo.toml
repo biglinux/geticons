@@ -26,10 +26,9 @@ repository = "https://git.sr.ht/~zethra/geticons"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-linicon = "2.1"
+linicon = "2.2"
 argh = "0.1"
-prettytable-rs = { version = "0.8", default-features = false }
 
-[profile.release]
-lto = true
-codegen-units = 1
+[dependencies.prettytable-rs]
+version = "0.8"
+default-features = false
