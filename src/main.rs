@@ -84,8 +84,8 @@ fn main() {
                 "Paths",
             ]);
             for theme in themes {
-                let inherits = fmt_list(&theme.inherits.unwrap_or(Vec::new()));
-                let paths = theme
+                let inherits = fmt_list(&theme.inherits.unwrap_or_default());
+                let paths: Vec<_> = theme
                     .paths
                     .iter()
                     .map(|p| p.display().to_string())
@@ -95,7 +95,7 @@ fn main() {
                     theme.name,
                     inherits,
                     theme.display_name,
-                    theme.comment.unwrap_or(String::new()),
+                    theme.comment.unwrap_or_default(),
                     paths,
                 ]);
             }
@@ -104,7 +104,6 @@ fn main() {
     } else if args.print_user_theme {
         if let Some(name) = linicon::get_system_theme() {
             println!("{}", name);
-            return;
         } else {
             eprintln!("Error: Couldn't get user's icon theme");
             std::process::exit(1);
@@ -234,7 +233,7 @@ fn partition_by_theme(
     themes
 }
 
-fn fmt_list(list: &Vec<String>) -> String {
+fn fmt_list(list: &[String]) -> String {
     let mut out = String::new();
     let mut first = true;
     for item in list {
