@@ -14,7 +14,7 @@
 // this program. If not, see <https://www.gnu.org/licenses/>.
 
 use argh::FromArgs;
-use linicon::{IconPath, IconType, LiniconError};
+use linicon::{IconPath, IconType, LiniconError, Theme};
 use prettytable::{cell, format::consts::FORMAT_CLEAN, row, Table};
 use std::cmp::Ordering;
 
@@ -67,57 +67,11 @@ fn main() {
     if args.version {
         println!("{}", env!("CARGO_PKG_VERSION"));
     } else if args.list_themes {
-        let mut themes = linicon::themes();
-        themes.sort_unstable_by(|a, b| a.name.cmp(&b.name));
-        if args.long {
-            for theme in themes {
-                println!("{}", theme.name);
-            }
-        } else {
-            let mut table = Table::new();
-            table.set_format(*FORMAT_CLEAN);
-            table.set_titles(row![
-                "Name",
-                "Inherits",
-                "Display name",
-                "Comment",
-                "Paths",
-            ]);
-            for theme in themes {
-                let inherits = fmt_list(&theme.inherits.unwrap_or_default());
-                let paths: Vec<_> = theme
-                    .paths
-                    .iter()
-                    .map(|p| p.display().to_string())
-                    .collect();
-                let paths = fmt_list(&paths);
-                table.add_row(row![
-                    theme.name,
-                    inherits,
-                    theme.display_name,
-                    theme.comment.unwrap_or_default(),
-                    paths,
-                ]);
-            }
-            table.printstd();
-        }
+        list_themes(args.long)
     } else if args.print_user_theme {
-        if let Some(name) = linicon::get_system_theme() {
-            println!("{}", name);
-        } else {
-            eprintln!("Error: Couldn't get user's icon theme");
-            std::process::exit(1);
-        }
+        print_user_theme()
     } else {
-        let formats: Option<Vec<_>> = args.formats.as_ref().map(|s| s.split(',').map(|s| match s.to_lowercase().as_str() {
-                "png" => IconType::PNG,
-                "svg" => IconType::SVG,
-                "xmp" => IconType::XMP,
-                unsupported => {
-                    eprintln!("Invalid icon type {}.  Supported formats are png, svg, and xmp.", unsupported);
-                    std::process::exit(1);
-                }
-        }).collect());
+        let formats = get_formats(args.formats.as_ref());
         // get the icons for each theme
         let res: Vec<_> = args
             .names
@@ -125,47 +79,127 @@ fn main() {
             .map(|name| get_icons(name, &args, &formats))
             .collect();
         if args.long {
-            let mut table = Table::new();
-            table.set_format(*FORMAT_CLEAN);
-            table.set_titles(row![
-                "Path", "Theme", "Type", "Min size", "Max size", "Scale"
-            ]);
-            for (icons, _) in &res {
-                for icon in icons {
-                    let format = match icon.icon_type {
-                        IconType::PNG => "png",
-                        IconType::SVG => "svg",
-                        IconType::XMP => "xmp",
-                    };
-                    table.add_row(row![
-                        icon.path.display(),
-                        icon.theme,
-                        format,
-                        icon.min_size,
-                        icon.max_size,
-                        icon.scale
-                    ]);
-                }
-            }
-            table.printstd();
+            print_icons_long(&res);
         } else {
-            for (icons, _) in &res {
-                for icon in icons {
-                    println!("{}", icon.path.display());
-                }
-            }
+            print_icons(&res);
         }
-        let mut has_errors = false;
-        for (_, errors) in &res {
-            for error in errors {
-                has_errors = true;
-                eprintln!("Error: {}", error);
-            }
-        }
-        if has_errors {
-            std::process::exit(1);
+        print_errors(&res);
+    }
+}
+
+fn print_errors(res: &[(Vec<IconPath>, Option<LiniconError>)]) {
+    let mut has_errors = false;
+    for (_, errors) in res {
+        for error in errors {
+            has_errors = true;
+            eprintln!("Error: {}", error);
         }
     }
+    if has_errors {
+        std::process::exit(1);
+    }
+}
+
+fn print_icons(res: &[(Vec<IconPath>, Option<LiniconError>)]) {
+    for (icons, _) in res {
+        for icon in icons {
+            println!("{}", icon.path.display());
+        }
+    }
+}
+
+fn print_icons_long(res: &[(Vec<IconPath>, Option<LiniconError>)]) {
+    let mut table = Table::new();
+    table.set_format(*FORMAT_CLEAN);
+    table.set_titles(row![
+        "Path", "Theme", "Type", "Min size", "Max size", "Scale"
+    ]);
+    for (icons, _) in res {
+        for icon in icons {
+            let format = match icon.icon_type {
+                IconType::PNG => "png",
+                IconType::SVG => "svg",
+                IconType::XMP => "xmp",
+            };
+            table.add_row(row![
+                icon.path.display(),
+                icon.theme,
+                format,
+                icon.min_size,
+                icon.max_size,
+                icon.scale
+            ]);
+        }
+    }
+    table.printstd();
+}
+
+fn get_formats(formats_str: Option<&String>) -> Option<Vec<IconType>> {
+    formats_str
+        .map(|s| s.split(',')
+        .map(|s| match s.to_lowercase().as_str() {
+            "png" => IconType::PNG,
+            "svg" => IconType::SVG,
+            "xmp" => IconType::XMP,
+            unsupported => {
+                eprintln!("Invalid icon type {}.  Supported formats are png, svg, and xmp.", unsupported);
+                std::process::exit(1);
+            }
+        }).collect())
+}
+
+fn print_user_theme() {
+    if let Some(name) = linicon::get_system_theme() {
+        println!("{}", name);
+    } else {
+        eprintln!("Error: Couldn't get user's icon theme");
+        std::process::exit(1);
+    }
+}
+
+fn list_themes(long: bool) {
+    let mut themes = linicon::themes();
+    themes.sort_unstable_by(|a, b| a.name.cmp(&b.name));
+    if long {
+        print_themes(&themes)
+    } else {
+        print_themes_long(themes)
+    }
+}
+
+fn print_themes(themes: &[Theme]) {
+    for theme in themes {
+        println!("{}", theme.name);
+    }
+}
+
+fn print_themes_long(themes: Vec<Theme>) {
+    let mut table = Table::new();
+    table.set_format(*FORMAT_CLEAN);
+    table.set_titles(row![
+        "Name",
+        "Inherits",
+        "Display name",
+        "Comment",
+        "Paths",
+    ]);
+    for theme in themes {
+        let inherits = fmt_list(&theme.inherits.unwrap_or_default());
+        let paths: Vec<_> = theme
+            .paths
+            .iter()
+            .map(|p| p.display().to_string())
+            .collect();
+        let paths = fmt_list(&paths);
+        table.add_row(row![
+            theme.name,
+            inherits,
+            theme.display_name,
+            theme.comment.unwrap_or_default(),
+            paths,
+        ]);
+    }
+    table.printstd();
 }
 
 fn get_icons(
