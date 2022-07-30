@@ -15,7 +15,7 @@
 
 [package]
 name = "geticons"
-version = "1.2.0"
+version = "1.2.1"
 authors = ["Sashanoraa <sasha@noraa.gay>"]
 edition = "2018"
 description = "CLI tool to get icons on Linux and other Freedesktop systems"
