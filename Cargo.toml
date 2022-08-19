@@ -32,5 +32,5 @@ linicon = "2.3"
 argh = "0.1"
 
 [dependencies.prettytable-rs]
-version = "0.8"
+version = "0.9"
 default-features = false
