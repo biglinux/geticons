@@ -15,7 +15,7 @@
 
 use argh::FromArgs;
 use linicon::{IconPath, IconType, LiniconError, Theme};
-use prettytable::{cell, format::consts::FORMAT_CLEAN, row, Table};
+use prettytable::{format::consts::FORMAT_CLEAN, row, Table};
 use std::cmp::Ordering;
 
 #[derive(Debug, FromArgs)]
@@ -276,7 +276,7 @@ fn fmt_list(list: &[String]) -> String {
         } else {
             first = false;
         }
-        out.push_str(&item);
+        out.push_str(item);
     }
     out
 }
