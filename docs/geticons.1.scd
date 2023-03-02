@@ -49,7 +49,7 @@ Freedesktop systems.
 
 # AUTHOR
 
-Benjamin Aaron Goldberg <ben@benaaron.dev>
+Sashanoraa <sasha@noraa.gay>
 
 # ALSO SEE
 

@@ -1,5 +1,5 @@
 // geticons - A program to get icons in Freedesktop systems
-// Copyright (C) 2020 Benjamin Aaron Goldberg <ben@benaaron.dev>
+// Copyright (C) 2020 Sashanoraa <sasha@noraa.gay>
 //
 // This program is free software: you can redistribute it and/or modify it under
 // the terms of the GNU General Public License as published by the Free Software
