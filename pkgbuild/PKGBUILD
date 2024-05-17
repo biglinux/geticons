@@ -2,7 +2,7 @@ pkgname=geticons
 pkgver=1.2.3
 pkgrel=1
 pkgdesc="CLI tool to get icons on Linux and other Freedesktop systems"
-makedepends=('cargo')
+# makedepends=('cargo')
 license=('GPL')
 arch=('x86_64')
 url="https://github.com/biglinux/$pkgname"
@@ -15,13 +15,18 @@ elif [ -e "pkgbuild.install" ];then
     install=pkgbuild.install
 fi
 
-build() {
-	cd "${srcdir}/${pkgname}"
-	make
-}
-
+# build() {
+# 	cd "${srcdir}/${pkgname}"
+# 	make
+# }
+# 
+# package() {
+# 	cd "${srcdir}/${pkgname}"
+# 	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
+# 	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+# }
 package() {
-	cd "${srcdir}/${pkgname}"
+	cd "${srcdir}/${pkgname}/bin"
 	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
-	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+# 	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
 }
