@@ -26,10 +26,6 @@ struct Args {
     #[argh(option, short = 't')]
     theme: Option<String>,
 
-    /// don't go to fallback themes
-    #[argh(switch)]
-    no_fallbacks: bool,
-
     /// list installed themes
     #[argh(switch, short = 'L')]
     list_themes: bool,
@@ -61,7 +57,7 @@ fn main() {
         let res: Vec<_> = args
             .names
             .iter()
-            .map(|name| get_icons(name, &args, &formats))
+            .map(|name| get_icons_with_fallback(name, &args, &formats))
             .collect();
         if args.long {
             print_icons_long(&res);
@@ -187,10 +183,25 @@ fn print_themes_long(themes: Vec<Theme>) {
     table.printstd();
 }
 
+fn get_icons_with_fallback(
+    icon_name: &str,
+    args: &Args,
+    formats: &Option<Vec<IconType>>,
+) -> (Vec<IconPath>, Option<LiniconError>) {
+    // Try with no-fallbacks first
+    let mut result = get_icons(icon_name, args, formats, true);
+    // If no icons found, try again with fallbacks
+    if result.0.is_empty() {
+        result = get_icons(icon_name, args, formats, false);
+    }
+    result
+}
+
 fn get_icons(
     icon_name: &str,
     args: &Args,
     formats: &Option<Vec<IconType>>,
+    no_fallbacks: bool,
 ) -> (Vec<IconPath>, Option<LiniconError>) {
     let mut iter = linicon::lookup_icon(icon_name);
     // Set lookup params
@@ -203,7 +214,7 @@ fn get_icons(
     if let Some(theme) = &args.theme {
         iter = iter.from_theme(theme);
     }
-    iter = iter.use_fallback_themes(!args.no_fallbacks);
+    iter = iter.use_fallback_themes(!no_fallbacks);
 
     // Grab errors
     let (iter, mut error): (Vec<_>, Vec<_>) = iter.partition(Result::is_ok);
@@ -216,7 +227,7 @@ fn get_icons(
         None => partition_by_theme(iter),
     };
     for icons in &mut themes {
-        // SVGs first, them PNGs and XMPs by max size
+        // SVGs first, then PNGs and XMPs by max size
         icons.sort_unstable_by(|a, b| {
             if a.icon_type == IconType::SVG {
                 Ordering::Greater
