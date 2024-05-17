@@ -16,7 +16,6 @@
 use argh::FromArgs;
 use linicon::{IconPath, IconType, LiniconError, Theme};
 use prettytable::{format::consts::FORMAT_CLEAN, row, Table};
-use std::cmp::Ordering;
 
 #[derive(Debug, FromArgs)]
 /// Get icons
@@ -231,55 +230,30 @@ fn get_icons(
     }
     iter = iter.use_fallback_themes(!no_fallbacks);
 
-    // Grab errors
-    let (iter, mut error): (Vec<_>, Vec<_>) = iter.partition(Result::is_ok);
-    let iter = iter.into_iter().map(Result::unwrap);
-    // Filter by format
-    let mut themes = match &formats {
-        Some(formats) => partition_by_theme(
-            iter.filter(|icon| formats.contains(&icon.icon_type)),
-        ),
-        None => partition_by_theme(iter),
-    };
-    for icons in &mut themes {
-        // SVGs first, then PNGs and XMPs by max size
-        icons.sort_unstable_by(|a, b| {
-            if a.icon_type == IconType::SVG {
-                Ordering::Greater
-            } else if b.icon_type == IconType::SVG {
-                Ordering::Less
-            } else {
-                b.max_size.cmp(&a.max_size)
-            }
-        });
-    }
-    (
-        themes.into_iter().flatten().collect(),
-        error.pop().map(|e| e.unwrap_err()),
-    )
-}
+    let mut error: Option<LiniconError> = None;
+    let mut icons: Vec<IconPath> = vec![];
 
-/// Splits icon list into one list per theme
-fn partition_by_theme(
-    iter: impl Iterator<Item = IconPath>,
-) -> Vec<Vec<IconPath>> {
-    let mut themes = Vec::new();
-    let mut curr_theme = None;
-    let mut curr_list = Vec::new();
-    for icon in iter {
-        if curr_theme.as_ref() != Some(&icon.theme) {
-            if !curr_list.is_empty() {
-                themes.push(curr_list);
+    for icon_result in iter {
+        match icon_result {
+            Ok(icon) => {
+                if let Some(formats) = &formats {
+                    if formats.contains(&icon.icon_type) {
+                        icons.push(icon);
+                        break; // Found a valid icon, exit the loop
+                    }
+                } else {
+                    icons.push(icon);
+                    break; // Found a valid icon, exit the loop
+                }
             }
-            curr_theme = Some(icon.theme.clone());
-            curr_list = Vec::new();
+            Err(e) => {
+                error = Some(e);
+                break; // Exit on the first error
+            }
         }
-        curr_list.push(icon);
     }
-    if !curr_list.is_empty() {
-        themes.push(curr_list);
-    }
-    themes
+
+    (icons, error)
 }
 
 fn fmt_list(list: &[String]) -> String {
@@ -295,3 +269,4 @@ fn fmt_list(list: &[String]) -> String {
     }
     out
 }
+
