@@ -1,5 +1,5 @@
 pkgname=geticons
-pkgver=1.2.3
+pkgver=1.2.4
 pkgrel=1
 pkgdesc="CLI tool to get icons on Linux and other Freedesktop systems"
 # makedepends=('cargo')
