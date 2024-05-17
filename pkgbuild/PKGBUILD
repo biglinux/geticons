@@ -16,12 +16,12 @@ elif [ -e "pkgbuild.install" ];then
 fi
 
 build() {
-	cd "$srcdir/$pkgname"
+	cd "${srcdir}/${pkgname}"
 	make
 }
 
 package() {
-	cd "$srcdir/$pkgname"
-	install -Dm755 geticons "$pkgdir/usr/bin/${pkgname%-git}"
-	install -Dm644 geticons.1 "$pkgdir/usr/share/man/man1/${pkgname%-git}.1"
+	cd "${srcdir}/${pkgname}"
+	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
+	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
 }
