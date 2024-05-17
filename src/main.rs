@@ -1,18 +1,3 @@
-// geticons - A program to get icons in Freedesktop systems
-// Copyright (C) 2020 Sashanoraa <sasha@noraa.gay>
-//
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the GNU General Public License as published by the Free Software
-// Foundation, either version 3 of the License, or (at your option) any later
-// version.
-//
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-// PARTICULAR PURPOSE. See the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License along with
-// this program. If not, see <https://www.gnu.org/licenses/>.
-
 use argh::FromArgs;
 use linicon::{IconPath, IconType, LiniconError, Theme};
 use prettytable::{format::consts::FORMAT_CLEAN, row, Table};
@@ -90,7 +75,7 @@ fn main() {
 fn print_errors(res: &[(Vec<IconPath>, Option<LiniconError>)]) {
     let mut has_errors = false;
     for (_, errors) in res {
-        for error in errors {
+        if let Some(error) = errors {
             has_errors = true;
             eprintln!("Error: {}", error);
         }
@@ -161,9 +146,9 @@ fn list_themes(long: bool) {
     let mut themes = linicon::themes();
     themes.sort_unstable_by(|a, b| a.name.cmp(&b.name));
     if long {
-        print_themes(&themes)
-    } else {
         print_themes_long(themes)
+    } else {
+        print_themes(&themes)
     }
 }
 
@@ -244,7 +229,7 @@ fn get_icons(
     }
     (
         themes.into_iter().flatten().collect(),
-        error.pop().map(Result::unwrap_err),
+        error.pop().map(|e| e.unwrap_err()),
     )
 }
 
@@ -257,13 +242,17 @@ fn partition_by_theme(
     let mut curr_list = Vec::new();
     for icon in iter {
         if curr_theme.as_ref() != Some(&icon.theme) {
+            if !curr_list.is_empty() {
+                themes.push(curr_list);
+            }
             curr_theme = Some(icon.theme.clone());
-            themes.push(curr_list);
             curr_list = Vec::new();
         }
         curr_list.push(icon);
     }
-    themes.push(curr_list);
+    if !curr_list.is_empty() {
+        themes.push(curr_list);
+    }
     themes
 }
 

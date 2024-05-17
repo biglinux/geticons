@@ -1,18 +1,3 @@
-# geticons - A program to get icons in Freedesktop systems
-# Copyright (C) 2020 Sashanoraa <sasha@noraa.gay>
-# 
-# This program is free software: you can redistribute it and/or modify it under
-# the terms of the GNU General Public License as published by the Free Software
-# Foundation, either version 3 of the License, or (at your option) any later
-# version.
-# 
-# This program is distributed in the hope that it will be useful, but WITHOUT ANY
-# WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-# PARTICULAR PURPOSE. See the GNU General Public License for more details.
-# 
-# You should have received a copy of the GNU General Public License along with
-# this program. If not, see <https://www.gnu.org/licenses/>.
-
 [package]
 name = "geticons"
 version = "1.2.2"
@@ -25,12 +10,18 @@ repository = "https://git.sr.ht/~zethra/geticons"
 categories = ["command-line-utilities"]
 keywords = ["cli", "freedesktop", "icons", "linux", "utility"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-linicon = "2.3"
-argh = "0.1"
+linicon = { version = "2.3" }
+argh = { version = "0.1", default-features = false }
+prettytable-rs = { version = "0.9", default-features = false, features = ["csv"] }
 
-[dependencies.prettytable-rs]
-version = "0.9"
-default-features = false
+[profile.release]
+opt-level = "z"  # Optimize for size
+lto = true  # Enable link-time optimization
+codegen-units = 1  # Reduce the number of codegen units to increase optimization
+debug = false  # Disable debug symbols
+panic = "abort"  # Reduce binary size by using abort on panic
+strip = true  # Strip symbols from the binary
+
+[features]
+default = []
