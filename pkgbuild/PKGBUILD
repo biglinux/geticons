@@ -15,18 +15,18 @@ elif [ -e "pkgbuild.install" ];then
     install=pkgbuild.install
 fi
 
-# build() {
-# 	cd "${srcdir}/${pkgname}"
-# 	make
-# }
-# 
-# package() {
-# 	cd "${srcdir}/${pkgname}"
-# 	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
-# 	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
-# }
-package() {
-	cd "${srcdir}/${pkgname}/bin"
-	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
-# 	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+build() {
+	cd "${srcdir}/${pkgname}"
+	make
 }
+
+package() {
+	cd "${srcdir}/${pkgname}"
+	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
+	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+}
+# package() {
+# 	cd "${srcdir}/${pkgname}/bin"
+# 	install -Dm755 geticons "${pkgdir}/usr/bin/${pkgname}"
+# # 	install -Dm644 geticons.1 "${pkgdir}/usr/share/man/man1/${pkgname}.1"
+# }
