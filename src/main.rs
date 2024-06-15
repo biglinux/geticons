@@ -1,21 +1,8 @@
-// geticons - A program to get icons in Freedesktop systems
-// Copyright (C) 2020 Sashanoraa <sasha@noraa.gay>
-//
-// This program is free software: you can redistribute it and/or modify it under
-// the terms of the GNU General Public License as published by the Free Software
-// Foundation, either version 3 of the License, or (at your option) any later
-// version.
-//
-// This program is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
-// PARTICULAR PURPOSE. See the GNU General Public License for more details.
-//
-// You should have received a copy of the GNU General Public License along with
-// this program. If not, see <https://www.gnu.org/licenses/>.
-
 use argh::FromArgs;
 use linicon::{IconPath, IconType, LiniconError, Theme};
 use prettytable::{format::consts::FORMAT_CLEAN, row, Table};
+use std::env;
+use std::path::PathBuf;
 
 #[derive(Debug, FromArgs)]
 /// Get icons
@@ -137,7 +124,7 @@ fn get_formats(formats_str: Option<&String>) -> Option<Vec<IconType>> {
             "svg" => IconType::SVG,
             "xmp" => IconType::XMP,
             unsupported => {
-                eprintln!("Invalid icon type {}.  Supported formats are png, svg, and xmp.", unsupported);
+                eprintln!("Invalid icon type {}. Supported formats are png, svg, and xmp.", unsupported);
                 std::process::exit(1);
             }
         }).collect())
@@ -230,6 +217,17 @@ fn get_icons(
     }
     iter = iter.use_fallback_themes(!no_fallbacks);
 
+    // Add user-specific icon directories to the search path
+    let home_dir = env::var("HOME").expect("Could not get home directory");
+    let user_icon_paths: Vec<String> = vec![
+        format!("{}/.icons", home_dir),
+        format!("{}/.local/share/icons", home_dir),
+    ];
+
+    iter = iter
+        .with_search_paths(&user_icon_paths)
+        .expect("Failed to add search paths");
+
     let mut error: Option<LiniconError> = None;
     let mut icons: Vec<IconPath> = vec![];
 
@@ -269,4 +267,3 @@ fn fmt_list(list: &[String]) -> String {
     }
     out
 }
-
